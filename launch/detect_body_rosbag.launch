@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+  <param name="use_sim_time" value="true" />
+
+  <arg name="bagfile" default="2022-04-04-11-29-08.bag"/>
+        <!-- Play the bagfile -->
+  <node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile) -r 1" />
+  
+  <!-- <node name="hand_detection" pkg="hand_detection_rospy" type="main.py" output="screen" /> -->
+  <!-- <node name="main_pkg" pkg="main_pkg" type="main.py" output="screen" /> -->
+
+  <node name="ros_openpose_egocentric_node" pkg="ros_openpose_egocentric" type="ros_openpose_egocentric_node" output="screen"/> 
+
+  <arg name="show_rviz" default="true"/>
+  <group if="$(arg show_rviz)">
+    <arg name="rviz_file" default="$(find main_pkg)/rviz/config.rviz" />
+    <node pkg="rviz" type="rviz" name="$(anon rviz)" output="screen"
+          args="-d $(arg rviz_file)" />
+  </group>
+
+</launch>
