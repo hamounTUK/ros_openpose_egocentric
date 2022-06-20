@@ -7,12 +7,12 @@
         <!-- Play the bagfile -->
   <node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile) -r 1" />
   
-  <!-- <node name="hand_detection" pkg="hand_detection_rospy" type="main.py" output="screen" /> -->
-  <!-- <node name="main_pkg" pkg="main_pkg" type="main.py" output="screen" /> -->
 
-  <node name="ros_openpose_egocentric_node" pkg="ros_openpose_egocentric" type="ros_openpose_egocentric_node" output="screen"/> 
+  <arg name="my_args" default="--num_gpu 1 --num_gpu_start 0 --model_folder /home/hamoun/git/openpose/models/ "/>
 
-  <arg name="show_rviz" default="true"/>
+  <node name="ros_openpose_egocentric_node" pkg="ros_openpose_egocentric" type="ros_openpose_egocentric_node" output="screen" args="$(arg my_args)"/> 
+
+  <arg name="show_rviz" default="false"/>
   <group if="$(arg show_rviz)">
     <arg name="rviz_file" default="$(find main_pkg)/rviz/config.rviz" />
     <node pkg="rviz" type="rviz" name="$(anon rviz)" output="screen"
