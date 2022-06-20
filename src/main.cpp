@@ -130,7 +130,14 @@ int main(int argc, char **argv){
     if (datumProcessed != nullptr)
     {
         ROS_WARN_STREAM("Found $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        ROS_INFO_STREAM(datumProcessed);
+        const auto& poseKeypoints = datumProcessed->at(0)->poseKeypoints;
+
+
+        const auto numberPeopleDetected = poseKeypoints.getSize(0);
+        ROS_ERROR_STREAM(numberPeopleDetected);
+        ROS_INFO_STREAM(poseKeypoints);
+
+
 
         if (datumProcessed != nullptr && !datumProcessed->empty())
         {
