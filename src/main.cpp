@@ -6,12 +6,18 @@
 #define OPENPOSE_FLAGS_DISABLE_POSE
 
 
-class MyOPWrapper{
+#include <actionlib/server/simple_action_server.h>
 
-};
+#include <user_defined_msgs/BodyDetectedActionAction.h>
+#include <user_defined_msgs/BodyDetectedActionActionFeedback.h>
+#include <user_defined_msgs/BodyDetectedActionActionGoal.h>
+#include <user_defined_msgs/BodyDetectedActionActionResult.h>
+#include <user_defined_msgs/BodyDetectedActionFeedback.h>
+#include <user_defined_msgs/BodyDetectedActionGoal.h>
+#include <user_defined_msgs/BodyDetectedActionResult.h>
 
 
-
+typedef actionlib::SimpleActionServer<user_defined_msgs::BodyDetectedActionAction> Server;
 
 
 void configureWrapper(op::Wrapper& opWrapper)
@@ -107,52 +113,60 @@ void configureWrapper(op::Wrapper& opWrapper)
 }
 
 
+void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr& goal, Server* as)
+{
+    ROS_WARN_STREAM("Goal recieved");
+}
 
 
 int main(int argc, char **argv){
+    ros::init(argc, argv, "openpose_node");
+    ros::NodeHandle nh;
 
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
 
-    ros::init(argc, argv, "openpose_node");
-    ros::NodeHandle n;
+    Server server(nh, "/body", boost::bind(&execute_cb, _1, &server), false);
+    server.start();
+
 
     op::Wrapper opWrapper{op::ThreadManagerMode::Asynchronous};
-    
+
     configureWrapper(opWrapper);
+
     opWrapper.start();
     // opWrapper.exec();
 
-    const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
-    const op::Matrix imageToProcess = OP_CV2OPCONSTMAT(cvImageToProcess);
-    auto datumProcessed = opWrapper.emplaceAndPop(imageToProcess);
+    // const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
+    // const op::Matrix imageToProcess = OP_CV2OPCONSTMAT(cvImageToProcess);
+    // auto datumProcessed = opWrapper.emplaceAndPop(imageToProcess);
  
-    if (datumProcessed != nullptr)
-    {
-        ROS_WARN_STREAM("Found $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        const auto& poseKeypoints = datumProcessed->at(0)->poseKeypoints;
+    // if (datumProcessed != nullptr)
+    // {
+    //     ROS_WARN_STREAM("Found $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+    //     const auto& poseKeypoints = datumProcessed->at(0)->poseKeypoints;
 
 
-        const auto numberPeopleDetected = poseKeypoints.getSize(0);
-        ROS_ERROR_STREAM(numberPeopleDetected);
-        ROS_INFO_STREAM(poseKeypoints);
+    //     const auto numberPeopleDetected = poseKeypoints.getSize(0);
+    //     ROS_ERROR_STREAM(numberPeopleDetected);
+    //     ROS_INFO_STREAM(poseKeypoints);
 
 
 
-        if (datumProcessed != nullptr && !datumProcessed->empty())
-        {
-            ROS_WARN_STREAM("Passed this, goint to show");
-            // Display image
-            const cv::Mat cvMat = OP_OP2CVCONSTMAT(datumProcessed->at(0)->cvOutputData);
-            if (!cvMat.empty())
-            {   
-                cv::imshow(OPEN_POSE_NAME_AND_VERSION + " - Tutorial C++ API", cvMat);
-                cv::waitKey(0);
-            }
-        }
-    }
-    else
-        ROS_WARN_STREAM("No process or no result");
-
+    //     if (datumProcessed != nullptr && !datumProcessed->empty())
+    //     {
+    //         ROS_WARN_STREAM("Passed this, goint to show");
+    //         // Display image
+    //         const cv::Mat cvMat = OP_OP2CVCONSTMAT(datumProcessed->at(0)->cvOutputData);
+    //         if (!cvMat.empty())
+    //         {   
+    //             cv::imshow(OPEN_POSE_NAME_AND_VERSION + " - Tutorial C++ API", cvMat);
+    //             cv::waitKey(0);
+    //         }
+    //     }
+    // }
+    // else
+    //     ROS_WARN_STREAM("No process or no result");
+    ros::spin();
     return 0;
 }
