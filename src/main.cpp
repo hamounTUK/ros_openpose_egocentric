@@ -116,7 +116,43 @@ void configureWrapper(op::Wrapper& opWrapper)
 void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr& goal, Server* as)
 {
     ROS_WARN_STREAM("Goal recieved");
+
+
 }
+
+
+
+class ActionServerManager{
+    protected:
+        ros::NodeHandle nh;
+        Server server_;
+        op::Wrapper& opw_;
+    public:
+        ActionServerManager(op::Wrapper& opw):
+            opw_(opw),
+            server_(nh, "/body", boost::bind(&ActionServerManager::execute_cb, this, _1), false)
+        {
+            opw_.start();
+            server_.start();
+            ROS_INFO_STREAM("Action Server started...");
+
+
+            
+
+        }
+
+        void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr &goal){
+            ROS_INFO_STREAM("goal recieved. Execute cb");
+            const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
+            const op::Matrix imageToProcess = OP_CV2OPCONSTMAT(cvImageToProcess);
+            auto datumProcessed = opw_.emplaceAndPop(imageToProcess);
+
+
+        }
+
+    
+};
+
 
 
 int main(int argc, char **argv){
@@ -124,17 +160,18 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
 
     gflags::ParseCommandLineFlags(&argc, &argv, true);
-
-
-    Server server(nh, "/body", boost::bind(&execute_cb, _1, &server), false);
-    server.start();
-
-
+    
     op::Wrapper opWrapper{op::ThreadManagerMode::Asynchronous};
-
     configureWrapper(opWrapper);
-
     opWrapper.start();
+    
+    ActionServerManager action_server(opWrapper);
+
+    // Server server(nh, "/body", boost::bind(&execute_cb, _1, &server), false);
+    // server.start();
+
+
+    
     // opWrapper.exec();
 
     // const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
