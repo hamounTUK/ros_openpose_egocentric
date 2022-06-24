@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   user_defined_msgs
   actionlib
+  cv_bridge
 )
 
 # list(APPEND CMAKE_PREFIX_PATH "../../../openpose/build/cmake/")
@@ -132,7 +133,7 @@ catkin_package(
  ${GFLAGS_INCLUDE_DIR}
  ${GLOG_INCLUDE_DIR}
 #  LIBRARIES ros_openpose_egocentric
- CATKIN_DEPENDS roscpp rospy user_defined_msgs actionlib
+ CATKIN_DEPENDS roscpp rospy user_defined_msgs actionlib cv_bridge 
 #  DEPENDS system_lib
 
 # ${OpenPose_INCLUDE_DIRS}

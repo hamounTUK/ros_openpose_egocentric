@@ -1,5 +1,10 @@
 #include "ros/ros.h"
 
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 #include <openpose/flags.hpp>
 #include <openpose/headers.hpp>
 #include <opencv2/opencv.hpp>
@@ -117,9 +122,7 @@ void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr& goal, S
 {
     ROS_WARN_STREAM("Goal recieved");
 
-
 }
-
 
 
 class ActionServerManager{
@@ -136,16 +139,37 @@ class ActionServerManager{
             server_.start();
             ROS_INFO_STREAM("Action Server started...");
 
-
-            
-
         }
 
         void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr &goal){
-            ROS_INFO_STREAM("goal recieved. Execute cb");
-            const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
-            const op::Matrix imageToProcess = OP_CV2OPCONSTMAT(cvImageToProcess);
+
+            // sensor_msgs::ImageConstPtr fisheye1 = ros::topic::waitForMessage<sensor_msgs::Image>("/t265/fisheye1/image_raw", ros::Duration(0.0)) ;
+
+            sensor_msgs::Image fisheye1 = goal->fisheye1;
+
+        
+            cv_bridge::CvImagePtr cv_ptr;
+            try
+            {
+              cv_ptr = cv_bridge::toCvCopy(fisheye1, sensor_msgs::image_encodings::BGR8);
+            }
+            catch (cv_bridge::Exception& e)
+            {
+              ROS_ERROR("cv_bridge exception: %s", e.what());
+              return;
+            }
+
+            // cv::imshow("win", cv_ptr->image);
+            // cv::waitKey(3);
+
+            // const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
+            const op::Matrix imageToProcess = OP_CV2OPCONSTMAT(cv_ptr->image);
             auto datumProcessed = opw_.emplaceAndPop(imageToProcess);
+            
+            user_defined_msgs::BodyDetectedActionResult result;
+
+            server_.setSucceeded(result);
+            ROS_ERROR_STREAM("Goal recieved. Image captured!  " << fisheye1.header.seq);
 
 
         }
