@@ -138,7 +138,6 @@ class ActionServerManager{
             opw_.start();
             server_.start();
             ROS_INFO_STREAM("Action Server started...");
-
         }
 
         void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr &goal){
@@ -167,8 +166,14 @@ class ActionServerManager{
             auto datumProcessed = opw_.emplaceAndPop(imageToProcess);
             
             user_defined_msgs::BodyDetectedActionResult result;
+            user_defined_msgs::EgocentricBodySegmentDetected msg;
+            
+            msg.left_elbow_x = (int)fisheye1.header.seq;
+
+            result.detected_segments.push_back(msg); 
 
             server_.setSucceeded(result);
+            
             ROS_ERROR_STREAM("Goal recieved. Image captured!  " << fisheye1.header.seq);
 
 
@@ -182,9 +187,11 @@ class ActionServerManager{
 int main(int argc, char **argv){
     ros::init(argc, argv, "openpose_node");
     ros::NodeHandle nh;
-
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     
+    ros::AsyncSpinner spinner(0);
+    spinner.start();
+
     op::Wrapper opWrapper{op::ThreadManagerMode::Asynchronous};
     configureWrapper(opWrapper);
     opWrapper.start();
@@ -228,6 +235,6 @@ int main(int argc, char **argv){
     // }
     // else
     //     ROS_WARN_STREAM("No process or no result");
-    ros::spin();
+    ros::waitForShutdown();
     return 0;
 }
