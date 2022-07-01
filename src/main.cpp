@@ -147,10 +147,10 @@ class ActionServerManager{
         }
 
         void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr &goal){
-            ROS_ERROR_STREAM(ros::Time::now());
+            // ROS_ERROR_STREAM(ros::Time::now());
             sensor_msgs::Image fisheye1 = goal->fisheye1;
             // ROS_ERROR_STREAM("Goal recieved. Image captured!  " << fisheye1.header.seq);
-
+            ROS_ERROR_STREAM(goal->fisheye1.header.seq << " " << ros::Time::now());
         
             cv_bridge::CvImagePtr cv_ptr;
             try
@@ -199,15 +199,37 @@ class ActionServerManager{
             }
             
 
-            ROS_ERROR_STREAM(result.detected_segments.size());
+            ROS_ERROR_STREAM(goal->fisheye1.header.seq << " " << ros::Time::now() << "  done " << num_peeple);
+
             server_.setSucceeded(result);
 
 
             // ROS_ERROR_STREAM("Goal Processed.################" << fisheye1.header.seq);
 
-            int rwx = 0, rwy = 0;
+            int rwx1 = 0, rwy1 = 0;
+            int rwx2 = 0, rwy2 = 10;
+            int rwx3 = 0, rwy3 = 20;
+            if(num_peeple !=0)
+            {
+                rwx1 = result.detected_segments[0].right_wrist_x;
+                rwy1 = result.detected_segments[0].right_wrist_y;
+            }
+            if(num_peeple > 1)
+            {
+                rwx2 = result.detected_segments[1].right_wrist_x;
+                rwy2 = result.detected_segments[1].right_wrist_y;
+            }
+            if(num_peeple > 2)
+            {
+                rwx3 = result.detected_segments[2].right_wrist_x;
+                rwy3 = result.detected_segments[2].right_wrist_y;
+            }
+
             
-            cv::circle(cv_ptr->image, cv::Point(rwx, rwy), 2, cv::Scalar(0, 255, 255), 2);
+            cv::circle(cv_ptr->image, cv::Point(rwx1, rwy1), 2, cv::Scalar(0, 255, 0), 2);
+            cv::circle(cv_ptr->image, cv::Point(rwx2, rwy2), 2, cv::Scalar(0, 0, 255), 2);
+            cv::circle(cv_ptr->image, cv::Point(rwx3, rwy3), 2, cv::Scalar(255, 0, 0), 2);
+
 
             cv::imshow("win", cv_ptr->image);
             cv::waitKey(3);
