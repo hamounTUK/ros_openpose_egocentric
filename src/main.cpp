@@ -147,12 +147,9 @@ class ActionServerManager{
         }
 
         void execute_cb(const user_defined_msgs::BodyDetectedActionGoalConstPtr &goal){
-
-            // sensor_msgs::ImageConstPtr fisheye1 = ros::topic::waitForMessage<sensor_msgs::Image>("/t265/fisheye1/image_raw", ros::Duration(0.0)) ;
-
-
+            ROS_ERROR_STREAM(ros::Time::now());
             sensor_msgs::Image fisheye1 = goal->fisheye1;
-            ROS_ERROR_STREAM("Goal recieved. Image captured!  " << fisheye1.header.seq);
+            // ROS_ERROR_STREAM("Goal recieved. Image captured!  " << fisheye1.header.seq);
 
         
             cv_bridge::CvImagePtr cv_ptr;
@@ -166,58 +163,55 @@ class ActionServerManager{
               return;
             }
 
-            // const cv::Mat cvImageToProcess = cv::imread("frame0460.jpg");
             const op::Matrix imageToProcess = OP_CV2OPCONSTMAT(cv_ptr->image);
             auto datumProcessed = opw_.emplaceAndPop(imageToProcess);
             
             auto keypoints = datumProcessed->at(0)->poseKeypoints;
-            // ROS_INFO_STREAM(keypoints.getSize(1));
             int num_peeple = keypoints.getSize(0);
             int num_body_part = keypoints.getSize(1);
-            int rwx = 0, rwy = 0;
 
-
-            int max = 0;
-            int index = 0;
-                            ROS_WARN_STREAM("OKKKK2222");
-
+            user_defined_msgs::BodyDetectedActionResult result;            
+            // std::vector<user_defined_msgs::EgocentricBodySegmentDetected> body_msg_vec;
             for(int i = 0; i < num_peeple; i++){
+                user_defined_msgs::EgocentricBodySegmentDetected body_msg;
+                const auto left_elbow_baseIndex = keypoints.getSize(2)*(i*num_body_part + LEFT_ELBOW);
+                const auto left_wrist_baseIndex = keypoints.getSize(2)*(i*num_body_part + LEFT_WRIST);
+                const auto right_elbow_baseIndex = keypoints.getSize(2)*(i*num_body_part + RIGHT_ELBOW);
+                const auto right_wrist_baseIndex = keypoints.getSize(2)*(i*num_body_part + RIGHT_WRIST);
+                
+                body_msg.left_wrist_x = keypoints[left_wrist_baseIndex];
+                body_msg.left_wrist_y = keypoints[left_wrist_baseIndex + 1];
+                body_msg.left_wrist_score = keypoints[left_wrist_baseIndex + 2];
 
-                const int left_wrist_baseIndex = keypoints.getSize(2)*(i*num_body_part + LEFT_WRIST);
-                ROS_WARN_STREAM("OKKKK");
-                if (max < keypoints[left_wrist_baseIndex + 2]){
-                    max = keypoints[left_wrist_baseIndex + 2];
-                    index = i;
-                }
+                body_msg.left_elbow_x = keypoints[left_elbow_baseIndex];
+                body_msg.left_elbow_y = keypoints[left_elbow_baseIndex + 1];
+                body_msg.left_elbow_score = keypoints[left_elbow_baseIndex + 2];
+
+                body_msg.right_wrist_x = keypoints[right_wrist_baseIndex];
+                body_msg.right_wrist_y = keypoints[right_wrist_baseIndex + 1];
+                body_msg.right_wrist_score = keypoints[right_wrist_baseIndex + 2];
+
+                body_msg.right_elbow_x = keypoints[right_elbow_baseIndex];
+                body_msg.right_elbow_y = keypoints[right_elbow_baseIndex + 1];
+                body_msg.right_elbow_score =  keypoints[right_elbow_baseIndex + 2];
+
+                result.detected_segments.push_back(body_msg);
             }
-
-
-            for(int i = 0; i < num_peeple; i++){
-                i = index;    
-                const auto left_elbow_baseIndex = keypoints.getSize(2)*(index*num_body_part + LEFT_ELBOW);
-                const auto left_wrist_baseIndex = keypoints.getSize(2)*(index*num_body_part + LEFT_WRIST);
-                const auto right_elbow_baseIndex = keypoints.getSize(2)*(index*num_body_part + RIGHT_ELBOW);
-                const auto right_wrist_baseIndex = keypoints.getSize(2)*(index*num_body_part + RIGHT_WRIST);
-                rwx = keypoints[left_wrist_baseIndex];
-                rwy = keypoints[left_wrist_baseIndex + 1];
-            }
-
-            user_defined_msgs::BodyDetectedActionResult result;
-            user_defined_msgs::EgocentricBodySegmentDetected msg;
             
-            msg.left_elbow_x = (int)fisheye1.header.seq;
 
-            result.detected_segments.push_back(msg); 
-
+            ROS_ERROR_STREAM(result.detected_segments.size());
             server_.setSucceeded(result);
 
-            cv::circle(cv_ptr->image, cv::Point(rwx, rwy), 2, cv::Scalar(0, 255, 0), 2);
+
+            // ROS_ERROR_STREAM("Goal Processed.################" << fisheye1.header.seq);
+
+            int rwx = 0, rwy = 0;
+            
+            cv::circle(cv_ptr->image, cv::Point(rwx, rwy), 2, cv::Scalar(0, 255, 255), 2);
+
             cv::imshow("win", cv_ptr->image);
             cv::waitKey(3);
             
-            ROS_ERROR_STREAM("Goal Processed.################" << fisheye1.header.seq);
-
-
         }
 
     
