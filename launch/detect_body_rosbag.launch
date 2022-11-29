@@ -3,18 +3,32 @@
 <launch>
   <param name="use_sim_time" value="true" />
 
-  <arg name="bagfile" default="2022-04-04-11-29-08.bag"/>
-        <!-- Play the bagfile -->
-  <node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile) -r 1" />
+
+  <!-- parmeters for replaying rosbag -->
+  <arg name="bagfile"       default="$(find ros_openpose_egocentric)/bags/test.bag"/>
+  <arg name="speed_rate"    default="-r 0.2"/>
+  <arg name="start"         default="-s 0"/>
+  <arg name="delay"         default="-d 0"/>
   
 
-  <arg name="my_args" default="--num_gpu 1 --num_gpu_start 0 --model_folder /home/hamoun/git/openpose/models/ "/>
+  
+  <!-- Play the bagfile -->
+  <node pkg="rosbag" type="play" name="rosbag" args="--clock $(arg bagfile) $(arg speed_rate) $(arg start) $(arg delay)" />
+  
+  <!-- Ros OpenPose Node -->
+  <node name="ros_openpose_egocentric_node" pkg="ros_openpose_egocentric" type="main.py" output="screen" /> 
 
-  <node name="ros_openpose_egocentric_node" pkg="ros_openpose_egocentric" type="ros_openpose_egocentric_node" output="screen" args="$(arg my_args)"/> 
+  <!-- Image Rectification Node -->
+  <node name="image_proc" pkg="image_proc" type="image_proc">
+    <remap from="/image_raw" to="/t265/fisheye1/image_raw"/>
+    <remap from="/camera_info" to="/t265/fisheye1/camera_info"/>
+    <remap from="/image_rect" to="/t265/fisheye1/image_raw_rect"/>
+  </node>
 
-  <arg name="show_rviz" default="false"/>
+  <!-- Visualization Node -->
+  <arg name="show_rviz" default="true"/>
   <group if="$(arg show_rviz)">
-    <arg name="rviz_file" default="$(find main_pkg)/rviz/config.rviz" />
+    <arg name="rviz_file" default="$(find ros_openpose_egocentric)/rviz/config.rviz" />
     <node pkg="rviz" type="rviz" name="$(anon rviz)" output="screen"
           args="-d $(arg rviz_file)" />
   </group>

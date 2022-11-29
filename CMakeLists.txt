@@ -10,8 +10,6 @@ project(ros_openpose_egocentric)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  user_defined_msgs
-  actionlib
   cv_bridge
 )
 
@@ -19,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 
 
-MESSAGE("CHello")
 
 
 
@@ -28,6 +25,7 @@ find_package(Glog REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenPose REQUIRED)
 find_package(OpenMP)
+
 
 ## Pass in the version of OpenPose
 add_definitions( -DOpenPose_VERSION_MAJOR=${OpenPose_VERSION_MAJOR} )
@@ -127,13 +125,15 @@ MESSAGE(STATUS "OpenPose VERSION: " ${OpenPose_VERSION})
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+
 catkin_package(
  INCLUDE_DIRS include
  ${OpenPose_INCLUDE_DIRS}
  ${GFLAGS_INCLUDE_DIR}
  ${GLOG_INCLUDE_DIR}
 #  LIBRARIES ros_openpose_egocentric
- CATKIN_DEPENDS roscpp rospy user_defined_msgs actionlib cv_bridge 
+ CATKIN_DEPENDS roscpp rospy cv_bridge 
 #  DEPENDS system_lib
 
 # ${OpenPose_INCLUDE_DIRS}
@@ -166,7 +166,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/main.cpp)
+# add_executable(${PROJECT_NAME}_node src/main.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -179,15 +179,16 @@ add_executable(${PROJECT_NAME}_node src/main.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
 
-  ${OpenPose_LIBS}
-  ${GFLAGS_LIBRARY}
-  ${GLOG_LIBRARY}
-  ${OpenCV_LIBS}
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+
+#   ${OpenPose_LIBS}
+#   ${GFLAGS_LIBRARY}
+#   ${GLOG_LIBRARY}
+#   ${OpenCV_LIBS}
         
-)
+# )
 
 #############
 ## Install ##
@@ -202,6 +203,10 @@ target_link_libraries(${PROJECT_NAME}_node
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
+catkin_install_python(PROGRAMS
+  script/main.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
@@ -230,6 +235,8 @@ target_link_libraries(${PROJECT_NAME}_node
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
+
+
 
 #############
 ## Testing ##

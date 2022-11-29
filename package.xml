@@ -57,11 +57,9 @@
   <exec_depend>rospy</exec_depend>
 
 
-  <exec_depend>user_defined_msgs</exec_depend>
-  <build_depend>user_defined_msgs</build_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <build_depend>cv_bridge</build_depend>
 
-  <exec_depend>actionlib</exec_depend>
-  <build_depend>actionlib</build_depend>
 
   <exec_depend>cv_bridge</exec_depend>
   <build_depend>cv_bridge</build_depend>
